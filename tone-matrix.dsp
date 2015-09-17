@@ -5,6 +5,7 @@ import("filter.lib");
 import("oscillator.lib");
 
 MATRIX_SIZE = 8; // Matrix size in columns
+SCALE_NUM   = 4;
 selectN(index, size, values) = values : par(i, size, *(index==i)) :> _;
 
 // User Interface
@@ -22,8 +23,7 @@ trig(row) = selectN(row, 5, (
 osc_rate = tgroup("[6]", hslider("v:[1]Oscillator/h:[1]/[1]Rate[style:knob]", 5, 0.1, 10, 0.1));
 osc_freq = tgroup("[6]", nentry("v:[1]Oscillator/h:[1]/[2]Frequency[unit:Hz]", 440, 0, 20000, 1));
 osc_type = tgroup("[6]", nentry("v:[1]Oscillator/h:[1]/[3]Tone", 1, 1, 3, 1) - 1);
-osc_scal = tgroup("[6]", checkbox("v:[1]Oscillator/h:[1]/[4]Minor Mode"));
-
+osc_scal = tgroup("[6]", nentry("v:[1]Oscillator/h:[1]/[4]Scale", 1, 1, SCALE_NUM, 1) - 1);
 osc_cut  = tgroup("[6]", hslider("v:[1]Oscillator/h:[2]/[1]Cutoff[style:knob]", 100, 1, 100, 1) * 200);
 osc_amp  = tgroup("[6]", hslider("v:[1]Oscillator/h:[2]/[2]Volume[style:knob][unit:%]", 100, 0, 100, 1) / 100);
 osc_pan  = tgroup("[6]", hslider("v:[1]Oscillator/h:[2]/[3]Pan[style:knob]", 50, 0, 100, 1) / 100);
@@ -48,21 +48,20 @@ trem_dep  = tgroup("[6]", hslider("v:[2]Effects/h:[4]Tremolo/[3]Depth[style:knob
 // Signal Generators
 // ===================================
 osc_mas(step, id) = select3(osc_type,
-	      	        osc((2^(1/12)^step) * osc_freq) * trig(id),		      // osc_type 1 = sine
-			triangle((2^(1/12)^step) * osc_freq) * trig(id) : *(2),	     // osc_type 2 = triangle
-			sawtooth((2^(1/12)^step) * osc_freq) * trig(id)	: *(0.5)    // osc_type 3 = sawtooth
-		    );
+	      	        	osc((2^(1/12)^step) * osc_freq) * trig(id),		         // osc_type 1 = sine
+						triangle((2^(1/12)^step) * osc_freq) * trig(id) : *(2),	 // osc_type 2 = triangle
+						sawtooth((2^(1/12)^step) * osc_freq) * trig(id)	: *(0.5) // osc_type 3 = sawtooth
+		    	    );
 
-osc_1 = osc_mas(select2(osc_scal, 9, 10), 0);
-osc_2 = osc_mas(select2(osc_scal, 7,  7), 1);
-osc_3 = osc_mas(select2(osc_scal, 4,  5), 2);
-osc_4 = osc_mas(select2(osc_scal, 2,  3), 3);
-osc_5 = osc_mas(select2(osc_scal, 0,  0), 4);
+osc_1 = osc_mas(selectN(osc_scal, SCALE_NUM, (9, 10, 8, 4)), 0);
+osc_2 = osc_mas(selectN(osc_scal, SCALE_NUM, (7,  7, 6, 3)), 1);
+osc_3 = osc_mas(selectN(osc_scal, SCALE_NUM, (4,  5, 4, 2)), 2);
+osc_4 = osc_mas(selectN(osc_scal, SCALE_NUM, (2,  3, 2, 1)), 3);
+osc_5 = osc_mas(selectN(osc_scal, SCALE_NUM, (0,  0, 0, 0)), 4);
 
 osc_step = lf_sawpos(((1/MATRIX_SIZE)) * osc_rate) : *(MATRIX_SIZE) : int;
 
 osc_out = osc_1, osc_2, osc_3, osc_4, osc_5 :> *(osc_amp);
-
 
 
 // Signal Modulators
@@ -87,8 +86,8 @@ tremolo = select2(trem_togl, _, *(trem_lfo + (1 - trem_dep)));
 // Signal Flow
 // ===================================
 process = osc_out <:
-	  cutoff <:
-	  tremolo <:
-	  flanger <:
-	  _, (echo * echo_amp) :>
-	  _ <: *(1 - osc_pan), *(osc_pan);
+	  	  cutoff <:
+	      tremolo <:
+	  	  flanger <:
+	  	  _, (echo * echo_amp) :>
+	  	  _ <: *(1 - osc_pan), *(osc_pan);

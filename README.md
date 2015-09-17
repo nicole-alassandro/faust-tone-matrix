@@ -7,11 +7,10 @@ The paramaters include:
 * Cycle speed
 * Base frequency
 * Tone selection (sine, triangle, sawtooth)
-* Major / Minor scale toggling
+* Scale toggling (pentatonic major, pentatonic minor, whole scale, chromatic)
 * Lowpass filter cutoff frequency
 
 The tones can then be passed through the audio effects:
 * Delay
 * Flanging
 * Tremelo
- 
