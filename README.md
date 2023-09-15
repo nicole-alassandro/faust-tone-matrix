@@ -1,6 +1,6 @@
 # Tone Matrix
 
-This .dps Faust module generates a cycling tone matrix with several parameters and audio effects.
+This .dsp Faust module generates a cycling tone matrix with several parameters and audio effects.
 
 The paramaters include:
 * Volume / Panning
